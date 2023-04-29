@@ -1,10 +1,18 @@
 ﻿#include <windows.h>
 #include <GL/gl.h>
+
+/*
+*	glext.h and khrplatform.h
+*   Download from under url
+	https://registry.khronos.org/OpenGL/index_gl.php
+
+	and add your project.
+*/
 #include "glext.h"
-//WAVのフォーマットについて記載がある
+
+//WAV format use
 #include <Mmreg.h>
 
-//#include "graph_shader.h"
 #include "synth_shader.h"
 #include <stdio.h>
 #include <string.h>
@@ -14,8 +22,8 @@
 //----------------------------------------------------------------
 #define	SCREEN_WIDTH	320//1920
 #define	SCREEN_HEIGHT	240//1080
-//#define INT_S unsigned char
 
+//#define INT_S unsigned char
 #define SND_DURATION 60*4
 #define INV_SNDRATE	1/44100
 #define SAMPLE_RATE 44100 
@@ -27,7 +35,7 @@
 
 bool stop_flag;
 
-//WAVヘッダ
+//WAV header.
 BYTE header[0x36] =
 {
 	'R','I','F','F',	//0000 RIFF
@@ -77,35 +85,6 @@ BYTE header[0x36] =
 	0x64,0x61,0x74,0x61	//0032
 };
 
-
-
-//----------------------------------------------------------------
-// とっかえ
-//----------------------------------------------------------------
-
-/*
-extern "C" {
-	int _fltused = 0x9875;
-
-	int __cdecl _ftol2_sse() {
-		int integral;
-		short oldfcw, newfcw;
-		__asm {
-			fstcw[oldfcw]
-			mov ax, [oldfcw]
-			or ax, 0c00h; chop
-			mov[newfcw], ax
-			fldcw[newfcw]
-			fistp dword ptr[integral]
-			fldcw[oldfcw]
-		}
-		return integral;
-	}
-
-	int __cdecl _ftol2() { return _ftol2_sse(); }// for VS.NET 2003
-}
-*/
-
 void Output() {
 
 }
@@ -115,32 +94,30 @@ void Output() {
 #endif
 
 //----------------------------------------------------------------
-// グローバル変数
+// global value
 //----------------------------------------------------------------
-// シェーダープログラム
+// shader pgm
 GLuint g_pProgram;
 
-// 一時的に使う変数。
-// 容量削減のためあちこちで使いまわします。
+// temporary value
 GLuint g_pTemp;
 
-// デバイスコンテキスト
+// device context
 HDC g_hDC;
 
-// ウィンドウハンドル
+// window hundle
 HWND g_hWnd;
 
-// レンダリングコンテキスト
+// rendering context
 HGLRC g_hGLRC;
 
 HWAVEOUT hWOut;
 
-//WAVの格納場所。
+//WAV output memory.
 float samples[SND_NUMSAMPLESC];
 
 HWAVEOUT hWaveOut = nullptr;
 WAVEHDR wave_hdr = { (LPSTR)samples, sizeof(samples) };
-//char str[32];
 
 WAVEFORMATEX wave_format = {
 	WAVE_FORMAT_IEEE_FLOAT,
@@ -152,14 +129,8 @@ WAVEFORMATEX wave_format = {
 	0
 };
 
-/*
-inline void SoundInitialize() {
-
-}
-*/
-
 //----------------------------------------------------------------
-// 継続可能か調べ、可能ならtrueを返す
+// window continuable
 //----------------------------------------------------------------
 inline bool CheckContinuable()
 {
@@ -176,46 +147,7 @@ inline bool CheckContinuable()
 }
 
 //----------------------------------------------------------------
-// シェーダープログラムをコンパイルする
-//----------------------------------------------------------------
-/*
-void CreateShaderProgram()
-{
-	g_pProgram = ((PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram"))();
-	g_pTemp = ((PFNGLCREATESHADERPROC)(wglGetProcAddress("glCreateShader")))(GL_VERTEX_SHADER);
-
-	
-	//int i = 0;
-	//for( i=0;vertexShaderSource[i] != '\0'; i++)
-	
-
-	((PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource"))(g_pTemp, 1, &vertexShaderSource, 0);
-	((PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader"))(g_pTemp);
-	((PFNGLATTACHSHADERPROC)wglGetProcAddress("glAttachShader"))(g_pProgram, g_pTemp);
-
-	g_pTemp = ((PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader"))(GL_FRAGMENT_SHADER);
-	((PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource"))(g_pTemp, 1, &fragmentShaderSource, 0);
-	((PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader"))(g_pTemp);
-	((PFNGLATTACHSHADERPROC)wglGetProcAddress("glAttachShader"))(g_pProgram, g_pTemp);
-
-	((PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram"))(g_pProgram);
-	((PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram"))(g_pProgram);
-}
-*/
-
-//----------------------------------------------------------------
-// ウィンドウ、OpenGLを初期化する
-//----------------------------------------------------------------
-/*
-inline void InitializeWindow()
-{
-
-
-}
-*/
-
-//----------------------------------------------------------------
-// エントリポイント
+// entrypoint
 //----------------------------------------------------------------
 void WinMainCRTStartup()
 {
@@ -233,8 +165,6 @@ void WinMainCRTStartup()
 	g_hWnd = CreateWindow("edit", 0, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, 0);
 #endif
 
-
-
 	g_hDC = GetDC(g_hWnd);
 
 	static const PIXELFORMATDESCRIPTOR g_pixelFormatDescriptor =
@@ -246,43 +176,27 @@ void WinMainCRTStartup()
 	g_hGLRC = wglCreateContext(g_hDC);
 	wglMakeCurrent(g_hDC, g_hGLRC);
 
-	//OpenGLコンテキストとウィンドウはセットみたいなので、
-	//ウィドウを隠す処理を入れる。
+	//hide OpenGL context window 
 	ShowWindow(g_hWnd, SW_HIDE);
 
-
-	//SoundInitialize();
 	GLuint programMzk;
 	GLint result;
 	GLuint tmp;
-
-	//ゼロクリアする（しないと前のデータが残るため）
-	/*
-	for (int i = 0; i < SND_NUMSAMPLESC; i++) {
-		samples[i] = 0.0;
-	}
-	*/
-
 	HANDLE hFile;
-
 	const char* c_str;
 
-
-	//サウンド部分。何故か代入しないと容量が大きく縮む。
-	//stop_flag = false;
-
-	//プログラム作成。
+	//OpenGL Extension
 	programMzk = ((PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram"))();
 
-	//シェーダ作成。
+	//OpenGL Extension
 	tmp = ((PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader"))(GL_VERTEX_SHADER);
 	((PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource"))(tmp, 1, &msh, 0);
 
-	//readShaderSource("music.vs", tmp);
+	//OpenGL Extension
 	((PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader"))(tmp);
 	((PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv"))(tmp, GL_COMPILE_STATUS, &result);
 
-	//エラーが出た際のチェック。
+	//error check
 #ifdef ERR_CHECK
 	if (result == GL_FALSE) {
 		GLsizei bufSize;
@@ -315,19 +229,13 @@ void WinMainCRTStartup()
 	((PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram"))(programMzk);
 	((PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram"))(programMzk);
 
-	//バッファ作成
+	//buffer create
 	((PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers"))(1, &tmp);
 	((PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer"))(GL_ARRAY_BUFFER, tmp);
 	((PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData"))(GL_ARRAY_BUFFER, SND_NUMSAMPLESC * sizeof(float), 0, GL_STATIC_READ);
 	((PFNGLBINDBUFFERBASEPROC)wglGetProcAddress("glBindBufferBase"))(GL_TRANSFORM_FEEDBACK_BUFFER, 0, tmp);
 
-	/*
-	((PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f"))(
-		((PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation"))(programMzk, U_SAMPLERATE),
-		(float)SAMPLE_RATE
-		);
-		*/
-	//フィードバック開始。
+	//transform feedback
 	glEnable(GL_RASTERIZER_DISCARD);
 	((PFNGLBEGINTRANSFORMFEEDBACKPROC)wglGetProcAddress("glBeginTransformFeedback"))(GL_POINTS);
 	glDrawArrays(GL_POINTS, 0, SND_NUMSAMPLES);
@@ -335,7 +243,7 @@ void WinMainCRTStartup()
 	glDisable(GL_RASTERIZER_DISCARD);
 	((PFNGLGETBUFFERSUBDATAPROC)wglGetProcAddress("glGetBufferSubData"))(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(samples), samples);
 
-	//何故かこれ消したら容量減ったんだけど
+	//Sleep(temporary)
 	Sleep(1);
 
 	//既に再生していたときの処理。
@@ -348,44 +256,22 @@ void WinMainCRTStartup()
 	waveOutPrepareHeader(hWaveOut, &wave_hdr, sizeof(wave_hdr));
 	waveOutWrite(hWaveOut, &wave_hdr, sizeof(wave_hdr));
 
-	//CreateShaderProgram();
-
-	//コントロールをOS側に返すためにSleep入れる
+	//Sleep
 	Sleep(1);
 
 	DWORD startTime = GetTickCount();
 	int time = 0;
 
-	/*
-	while (CheckContinuable())
-	{
-		//時間を取得
-		time = (int)GetTickCount() - startTime;
-
-		//1920
-		//1080 (16:9)
-
-		//glRecti(1, 1, -1, -1);
-
-		SwapBuffers(g_hDC);
-		Sleep(1);
-
-		//120000=120秒（2分）、実際はもうちょっと多いので2:30くらい
-		if (time > 1)
-			break;
-	}
-	*/
-
 	MessageBox(NULL, "GPU Trance 3gou. \n\nby machia/machiaworks 2023", "Executable Music", MB_OK);
 
-	//終了処理（GL側）
+	//end(gl)
 	wglMakeCurrent(NULL, NULL);
 	wglDeleteContext(g_hGLRC);
 
-	//終了処理（OS側）
+	//end(os)
 	ReleaseDC(g_hWnd, g_hDC);
 
-	//終了処理
+	//end.
 #ifdef FULL_SCREEN
 	PostQuitMessage(0);
 #endif
