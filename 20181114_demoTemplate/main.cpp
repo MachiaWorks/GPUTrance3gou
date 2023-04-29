@@ -14,8 +14,6 @@
 #include <Mmreg.h>
 
 #include "synth_shader.h"
-#include <stdio.h>
-#include <string.h>
 
 //----------------------------------------------------------------
 // 画面サイズ、モード
@@ -85,10 +83,6 @@ BYTE header[0x36] =
 	0x64,0x61,0x74,0x61	//0032
 };
 
-void Output() {
-
-}
-
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
@@ -96,11 +90,6 @@ void Output() {
 //----------------------------------------------------------------
 // global value
 //----------------------------------------------------------------
-// shader pgm
-GLuint g_pProgram;
-
-// temporary value
-GLuint g_pTemp;
 
 // device context
 HDC g_hDC;
@@ -182,8 +171,6 @@ void WinMainCRTStartup()
 	GLuint programMzk;
 	GLint result;
 	GLuint tmp;
-	HANDLE hFile;
-	const char* c_str;
 
 	//OpenGL Extension
 	programMzk = ((PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram"))();
@@ -258,9 +245,6 @@ void WinMainCRTStartup()
 
 	//Sleep
 	Sleep(1);
-
-	DWORD startTime = GetTickCount();
-	int time = 0;
 
 	MessageBox(NULL, "GPU Trance 3gou. \n\nby machia/machiaworks 2023", "Executable Music", MB_OK);
 
