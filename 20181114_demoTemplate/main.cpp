@@ -231,7 +231,7 @@ void WinMainCRTStartup()
 	((PFNGLGETBUFFERSUBDATAPROC)wglGetProcAddress("glGetBufferSubData"))(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(samples), samples);
 
 	//Sleep(temporary)
-	Sleep(1);
+	//Sleep(1);
 
 	//既に再生していたときの処理。
 #ifdef ERR_CHECK
